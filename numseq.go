@@ -1,6 +1,8 @@
 package kns
 
 import (
+	"fmt"
+
 	"git.kanosolution.net/kano/dbflex"
 	"git.kanosolution.net/kano/dbflex/orm"
 )
@@ -32,4 +34,8 @@ func (o *NumberSequence) PostDelete(conn dbflex.IConnection) error {
 	cmd := dbflex.From(new(NumberStatus).TableName()).Where(dbflex.Eq("NumberSequenceID", o.ID)).Delete()
 	conn.Execute(cmd, nil)
 	return nil
+}
+
+func (o *NumberSequence) Format(no int) string {
+	return fmt.Sprintf(o.Pattern, no)
 }

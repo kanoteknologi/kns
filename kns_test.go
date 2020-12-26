@@ -2,6 +2,7 @@ package kns_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"git.kanosolution.net/kano/appkit"
@@ -72,6 +73,10 @@ func TestKns(t *testing.T) {
 							w := dbflex.And(dbflex.Eq("NumberSequenceID", "Test"), dbflex.Eq("No", num.No))
 							e = h.GetByParm(stat, dbflex.NewQueryParam().SetWhere(w))
 							cv.So(e, cv.ShouldNotBeNil)
+
+							cv.Convey("validate no", func() {
+								cv.So(mgr.Format(num), cv.ShouldEqual, fmt.Sprintf(ns.Pattern, num.No))
+							})
 						})
 					})
 				})

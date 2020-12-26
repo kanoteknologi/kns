@@ -129,3 +129,10 @@ func (mgr *manager) CancelNo(seqid string, no int) error {
 func (mgr *manager) ResetSequence(seqid string, pattern string) error {
 	return nil
 }
+
+func (mgr *manager) Format(number *Number) string {
+	h := mgr.px.DataHub()
+	ns := new(NumberSequence)
+	h.GetByID(ns, number.NumberSequenceID)
+	return ns.Format(number.No)
+}
