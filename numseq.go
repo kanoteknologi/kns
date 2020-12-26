@@ -2,6 +2,7 @@ package kns
 
 import (
 	"fmt"
+	"strings"
 
 	"git.kanosolution.net/kano/dbflex"
 	"git.kanosolution.net/kano/dbflex/orm"
@@ -13,6 +14,7 @@ type NumberSequence struct {
 	Name              string
 	Enable            string
 	Pattern           string
+	DateFormat        string
 	NextNo            int
 }
 
@@ -36,6 +38,12 @@ func (o *NumberSequence) PostDelete(conn dbflex.IConnection) error {
 	return nil
 }
 
-func (o *NumberSequence) Format(no int) string {
-	return fmt.Sprintf(o.Pattern, no)
+func (o *NumberSequence) Format(num *Number) string {
+	if strings.Contains(o.Pattern, "%s") {
+		if o.DateFormat == "" {
+			return fmt.Sprintf(o.Pattern, num.Date.Format("2006-01-02"), num.No)
+		}
+		return fmt.Sprintf(o.Pattern, num.Date.Format(o.DateFormat), num.No)
+	}
+	return fmt.Sprintf(o.Pattern, num.No)
 }

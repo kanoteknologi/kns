@@ -19,7 +19,7 @@ func NewManager(px *kpx.ProcessContext) *manager {
 	return m
 }
 
-func (mgr *manager) NewSequence(id, pattern string, nextno int) (*NumberSequence, error) {
+func (mgr *manager) NewSequence(id, pattern, dateFormat string, nextno int) (*NumberSequence, error) {
 	ns := new(NumberSequence)
 	if e := mgr.px.DataHub().GetByID(ns, id); e == nil {
 		return nil, errors.New("NumberSequenceExist")
@@ -28,6 +28,7 @@ func (mgr *manager) NewSequence(id, pattern string, nextno int) (*NumberSequence
 	ns.ID = id
 	ns.Name = id
 	ns.Pattern = pattern
+	ns.DateFormat = dateFormat
 	ns.NextNo = nextno
 
 	if e := mgr.px.DataHub().Save(ns); e != nil {
@@ -59,6 +60,11 @@ func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number,
 		SetWhere(dbflex.And(dbflex.Eq("NumberSequenceID", seqid), dbflex.Eq("Status", "Available")))
 	if e := mgr.px.DataHub().GetByParm(resv, q); e == nil && resv.No < seq.NextNo {
 		res.NumberSequenceID = seqid
+		if date == nil {
+			res.Date = time.Now()
+		} else {
+			res.Date = *date
+		}
 		res.No = resv.No
 
 		if reserve {
@@ -74,6 +80,11 @@ func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number,
 	}
 
 	res.NumberSequenceID = seqid
+	if date == nil {
+		res.Date = time.Now()
+	} else {
+		res.Date = *date
+	}
 	res.No = seq.NextNo
 
 	if reserve {
@@ -134,5 +145,5 @@ func (mgr *manager) Format(number *Number) string {
 	h := mgr.px.DataHub()
 	ns := new(NumberSequence)
 	h.GetByID(ns, number.NumberSequenceID)
-	return ns.Format(number.No)
+	return ns.Format(number)
 }

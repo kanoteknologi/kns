@@ -25,7 +25,7 @@ func TestKns(t *testing.T) {
 	mgr := kns.NewManager(kpx.New(context.Background(), h, nil, appkit.LogWithPrefix("kns-test"), nil))
 
 	cv.Convey("create new sequence", t, func() {
-		ns, err := mgr.NewSequence("Test", "IV/2020/%d", 1001)
+		ns, err := mgr.NewSequence("Test", "IV/%s/%d", "2006/01", 1001)
 		cv.So(err, cv.ShouldBeNil)
 		cv.So(ns.NextNo, cv.ShouldEqual, 1001)
 		defer h.Delete(ns)
@@ -75,7 +75,8 @@ func TestKns(t *testing.T) {
 							cv.So(e, cv.ShouldNotBeNil)
 
 							cv.Convey("validate no", func() {
-								cv.So(mgr.Format(num), cv.ShouldEqual, fmt.Sprintf(ns.Pattern, num.No))
+								cv.Println("Number format", mgr.Format(num))
+								cv.So(mgr.Format(num), cv.ShouldEqual, fmt.Sprintf(ns.Pattern, num.Date.Format("2006/01"), num.No))
 							})
 						})
 					})
