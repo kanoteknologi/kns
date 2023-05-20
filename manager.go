@@ -6,22 +6,22 @@ import (
 	"time"
 
 	"git.kanosolution.net/kano/dbflex"
-	"git.kanosolution.net/kano/kaos/kpx"
+	"github.com/ariefdarmawan/datahub"
 )
 
 type manager struct {
-	px *kpx.ProcessContext
+	hub *datahub.Hub
 }
 
-func NewManager(px *kpx.ProcessContext) *manager {
+func NewManager(hub *datahub.Hub) *manager {
 	m := new(manager)
-	m.px = px
+	m.hub = hub
 	return m
 }
 
 func (mgr *manager) NewSequence(id, pattern, dateFormat string, nextno int) (*NumberSequence, error) {
 	ns := new(NumberSequence)
-	if e := mgr.px.DataHub().GetByID(ns, id); e == nil {
+	if e := mgr.hub.GetByID(ns, id); e == nil {
 		return nil, errors.New("NumberSequenceExist")
 	}
 
@@ -31,7 +31,7 @@ func (mgr *manager) NewSequence(id, pattern, dateFormat string, nextno int) (*Nu
 	ns.DateFormat = dateFormat
 	ns.NextNo = nextno
 
-	if e := mgr.px.DataHub().Save(ns); e != nil {
+	if e := mgr.hub.Save(ns); e != nil {
 		return nil, e
 	}
 
@@ -40,7 +40,7 @@ func (mgr *manager) NewSequence(id, pattern, dateFormat string, nextno int) (*Nu
 
 func (mgr *manager) GetSequence(id string) (*NumberSequence, error) {
 	ns := new(NumberSequence)
-	if e := mgr.px.DataHub().GetByID(ns, id); e != nil {
+	if e := mgr.hub.GetByID(ns, id); e != nil {
 		return nil, errors.New("NumberSequenceErr: " + e.Error())
 	}
 	return ns, nil
@@ -48,7 +48,7 @@ func (mgr *manager) GetSequence(id string) (*NumberSequence, error) {
 
 func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number, error) {
 	seq := new(NumberSequence)
-	if e := mgr.px.DataHub().GetByID(seq, seqid); e != nil {
+	if e := mgr.hub.GetByID(seq, seqid); e != nil {
 		return nil, errors.New("InvalidSequenceNo")
 	}
 	res := new(Number)
@@ -58,7 +58,7 @@ func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number,
 	resv := new(NumberStatus)
 	q := dbflex.NewQueryParam().SetTake(1).SetSort("No").
 		SetWhere(dbflex.And(dbflex.Eq("NumberSequenceID", seqid), dbflex.Eq("Status", "Available")))
-	if e := mgr.px.DataHub().GetByParm(resv, q); e == nil && resv.No < seq.NextNo {
+	if e := mgr.hub.GetByParm(resv, q); e == nil && resv.No < seq.NextNo {
 		res.NumberSequenceID = seqid
 		if date == nil {
 			res.Date = time.Now()
@@ -69,11 +69,11 @@ func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number,
 
 		if reserve {
 			resv.Status = "Reserved"
-			if e = mgr.px.DataHub().Save(resv); e != nil {
+			if e = mgr.hub.Save(resv); e != nil {
 				return nil, fmt.Errorf("NumberSequenceReserveError: " + e.Error())
 			}
 		} else {
-			mgr.px.DataHub().Delete(resv)
+			mgr.hub.Delete(resv)
 		}
 
 		return res, nil
@@ -92,17 +92,17 @@ func (mgr *manager) GetNo(seqid string, date *time.Time, reserve bool) (*Number,
 		resv.NumberSequenceID = seqid
 		resv.No = res.No
 		resv.Status = "Reserved"
-		mgr.px.DataHub().Save(resv)
+		mgr.hub.Save(resv)
 	}
 
 	seq.NextNo++
-	mgr.px.DataHub().Save(seq)
+	mgr.hub.Save(seq)
 
 	return res, nil
 }
 
 func (mgr *manager) ConfirmNo(seqid string, no int) error {
-	h := mgr.px.DataHub()
+	h := mgr.hub
 
 	// get exising status
 	s := new(NumberStatus)
@@ -119,7 +119,7 @@ func (mgr *manager) ConfirmNo(seqid string, no int) error {
 }
 
 func (mgr *manager) CancelNo(seqid string, no int) error {
-	h := mgr.px.DataHub()
+	h := mgr.hub
 
 	// get exising status
 	s := new(NumberStatus)
@@ -142,7 +142,7 @@ func (mgr *manager) ResetSequence(seqid string, pattern string) error {
 }
 
 func (mgr *manager) Format(number *Number) string {
-	h := mgr.px.DataHub()
+	h := mgr.hub
 	ns := new(NumberSequence)
 	h.GetByID(ns, number.NumberSequenceID)
 	return ns.Format(number)

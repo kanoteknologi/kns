@@ -1,13 +1,10 @@
 package kns_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"git.kanosolution.net/kano/appkit"
 	"git.kanosolution.net/kano/dbflex"
-	"git.kanosolution.net/kano/kaos/kpx"
 	"github.com/ariefdarmawan/datahub"
 	_ "github.com/ariefdarmawan/flexmgo"
 	"github.com/kanoteknologi/kns"
@@ -22,7 +19,7 @@ func TestKns(t *testing.T) {
 	h := datahub.NewHub(datahub.GeneralDbConnBuilder(connTxt), true, 10)
 	defer h.Close()
 
-	mgr := kns.NewManager(kpx.New(context.Background(), h, nil, appkit.LogWithPrefix("kns-test"), nil))
+	mgr := kns.NewManager(h)
 
 	cv.Convey("create new sequence", t, func() {
 		ns, err := mgr.NewSequence("Test", "IV/%s/%d", "2006/01", 1001)

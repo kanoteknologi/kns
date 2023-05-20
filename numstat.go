@@ -10,7 +10,7 @@ import (
 
 type NumberStatus struct {
 	orm.DataModelBase `bson:"-" json:"-"`
-	ID                primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty" key:"1" kf-control:"text"`
+	ID                string `bson:"_id,omitempty" json:"_id,omitempty" key:"1" form_read_only:"1"`
 	NumberSequenceID  string
 	No                int
 	Status            string
@@ -28,14 +28,15 @@ func (o *NumberStatus) GetID(_ dbflex.IConnection) ([]string, []interface{}) {
 func (o *NumberStatus) SetID(keys ...interface{}) {
 	if len(keys) > 0 {
 		if idStr, ok := keys[0].(string); ok {
-			o.ID, _ = primitive.ObjectIDFromHex(idStr)
-		} else {
-			o.ID = keys[0].(primitive.ObjectID)
+			o.ID = idStr
 		}
 	}
 }
 
 func (o *NumberStatus) PreSave(conn dbflex.IConnection) error {
+	if o.ID == "" {
+		o.ID = primitive.NewObjectID().Hex()
+	}
 	o.LastUpdate = time.Now()
 	return nil
 }
