@@ -12,7 +12,7 @@ type NumberSequence struct {
 	orm.DataModelBase `bson:"-" json:"-"`
 	ID                string `bson:"_id" json:"_id" key:"1" form_read_only_edit:"1"`
 	Name              string
-	Enable            string
+	Enable            bool
 	Pattern           string
 	DateFormat        string
 	NextNo            int
